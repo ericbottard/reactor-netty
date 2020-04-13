@@ -158,6 +158,9 @@ public final class TransportConnector {
 		Channel channel = null;
 		try {
 			channel = channelFactory.newChannel();
+			if (channelInitializer instanceof TransportServer.AcceptorInitializer) {
+				((TransportServer.AcceptorInitializer) channelInitializer).acceptor.enableAutoReadTask(channel);
+			}
 			channel.pipeline().addLast(channelInitializer);
 			setChannelOptions(channel, config.options);
 			setAttributes(channel, config.attrs);
