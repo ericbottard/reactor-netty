@@ -25,7 +25,7 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 import reactor.netty.resources.LoopResources;
-import reactor.netty.transport.TransportClient;
+import reactor.netty.transport.ClientTransport;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
@@ -51,7 +51,7 @@ import static reactor.netty.ReactorNetty.format;
  * @author Stephane Maldini
  * @author Violeta Georgieva
  */
-public abstract class UdpClient extends TransportClient<UdpClient, UdpClientConfig> {
+public abstract class UdpClient extends ClientTransport<UdpClient, UdpClientConfig> {
 
 	/**
 	 * Prepare a {@link UdpClient}

@@ -29,7 +29,7 @@ import reactor.netty.channel.ChannelOperations;
 import reactor.netty.channel.MicrometerChannelMetricsRecorder;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.resources.LoopResources;
-import reactor.netty.transport.TransportClientConfig;
+import reactor.netty.transport.ClientTransportConfig;
 
 import javax.annotation.Nullable;
 import java.net.SocketAddress;
@@ -43,7 +43,7 @@ import java.util.function.Supplier;
  * @author Violeta Georgieva
  * @since 1.0.0
  */
-public final class TcpClientConfig extends TransportClientConfig<TcpClientConfig> {
+public final class TcpClientConfig extends ClientTransportConfig<TcpClientConfig> {
 
 	@Override
 	public int channelHash() {

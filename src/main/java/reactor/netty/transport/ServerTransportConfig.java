@@ -43,7 +43,7 @@ import static reactor.netty.ReactorNetty.format;
  * @author Violeta Georgieva
  * @since 1.0.0
  */
-public abstract class TransportServerConfig<CONF extends TransportConfig> extends TransportConfig {
+public abstract class ServerTransportConfig<CONF extends TransportConfig> extends TransportConfig {
 
 	/**
 	 * Return the read-only default channel attributes for each remote connection
@@ -132,13 +132,13 @@ public abstract class TransportServerConfig<CONF extends TransportConfig> extend
 	Consumer<? super DisposableServer> doOnUnbound;
 
 	/**
-	 * Default TransportServerConfig with options
+	 * Default ServerTransportConfig with options
 	 *
 	 * @param options default options for the selector
 	 * @param childOptions default options for each connected channel
 	 * @param bindAddress the local address
 	 */
-	protected TransportServerConfig(Map<ChannelOption<?>, ?> options, Map<ChannelOption<?>, ?> childOptions,
+	protected ServerTransportConfig(Map<ChannelOption<?>, ?> options, Map<ChannelOption<?>, ?> childOptions,
 			Supplier<? extends SocketAddress> bindAddress) {
 		super(options, bindAddress);
 		this.childAttrs = Collections.emptyMap();
@@ -146,7 +146,7 @@ public abstract class TransportServerConfig<CONF extends TransportConfig> extend
 		this.childOptions = Objects.requireNonNull(childOptions, "childOptions");
 	}
 
-	protected TransportServerConfig(TransportServerConfig<CONF> parent) {
+	protected ServerTransportConfig(ServerTransportConfig<CONF> parent) {
 		super(parent);
 		this.childAttrs = parent.childAttrs;
 		this.childObserver = parent.childObserver;
@@ -174,7 +174,7 @@ public abstract class TransportServerConfig<CONF extends TransportConfig> extend
 			return ConnectionObserver.emptyListener();
 		}
 		else {
-			return new TransportServerDoOnConnection(channelGroup(), doOnConnection());
+			return new ServerTransportDoOnConnection(channelGroup(), doOnConnection());
 		}
 	}
 
@@ -183,7 +183,7 @@ public abstract class TransportServerConfig<CONF extends TransportConfig> extend
 		if (doOnBound() == null && doOnUnbound() == null) {
 			return ConnectionObserver.emptyListener();
 		}
-		return new TransportServerDoOn(doOnBound(), doOnUnbound());
+		return new ServerTransportDoOn(doOnBound(), doOnUnbound());
 	}
 
 	@Override
@@ -191,12 +191,12 @@ public abstract class TransportServerConfig<CONF extends TransportConfig> extend
 		return ChannelPipelineConfigurer.emptyConfigurer();
 	}
 
-	static final class TransportServerDoOn implements ConnectionObserver {
+	static final class ServerTransportDoOn implements ConnectionObserver {
 
 		final Consumer<? super DisposableServer> doOnBound;
 		final Consumer<? super DisposableServer> doOnUnbound;
 
-		TransportServerDoOn(@Nullable Consumer<? super DisposableServer> doOnBound,
+		ServerTransportDoOn(@Nullable Consumer<? super DisposableServer> doOnBound,
 				@Nullable Consumer<? super DisposableServer> doOnUnbound) {
 			this.doOnBound = doOnBound;
 			this.doOnUnbound = doOnUnbound;
@@ -217,12 +217,12 @@ public abstract class TransportServerConfig<CONF extends TransportConfig> extend
 		}
 	}
 
-	static final class TransportServerDoOnConnection implements ConnectionObserver {
+	static final class ServerTransportDoOnConnection implements ConnectionObserver {
 
 		final ChannelGroup                 channelGroup;
 		final Consumer<? super Connection> doOnConnection;
 
-		TransportServerDoOnConnection(@Nullable ChannelGroup channelGroup, @Nullable Consumer<? super Connection> doOnConnection) {
+		ServerTransportDoOnConnection(@Nullable ChannelGroup channelGroup, @Nullable Consumer<? super Connection> doOnConnection) {
 			this.channelGroup = channelGroup;
 			this.doOnConnection = doOnConnection;
 		}

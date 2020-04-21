@@ -186,17 +186,17 @@ class HttpClientConnect extends HttpClient {
 
 				_config.connectionProvider()
 						.acquire(_config, observer, handler, resolver)
-						.subscribe(new TransportClientSubscriber(sink));
+						.subscribe(new ClientTransportSubscriber(sink));
 
 			}).retry(handler)
 			  .subscribe(actual);
 		}
 
-		static final class TransportClientSubscriber implements CoreSubscriber<Connection> {
+		static final class ClientTransportSubscriber implements CoreSubscriber<Connection> {
 
 			final MonoSink<Connection> sink;
 
-			TransportClientSubscriber(MonoSink<Connection> sink) {
+			ClientTransportSubscriber(MonoSink<Connection> sink) {
 				this.sink = sink;
 			}
 

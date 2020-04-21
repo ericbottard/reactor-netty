@@ -41,7 +41,7 @@ import javax.annotation.Nullable;
  * @author Violeta Georgieva
  * @since 1.0.0
  */
-public abstract class TransportClientConfig<CONF extends TransportConfig> extends TransportConfig {
+public abstract class ClientTransportConfig<CONF extends TransportConfig> extends TransportConfig {
 
 	@Override
 	public int channelHash() {
@@ -88,9 +88,9 @@ public abstract class TransportClientConfig<CONF extends TransportConfig> extend
 	}
 
 	/**
-	 * Return true if that {@link TransportClientConfig} is configured with a proxy
+	 * Return true if that {@link ClientTransportConfig} is configured with a proxy
 	 *
-	 * @return true if that {@link TransportClientConfig} is configured with a proxy
+	 * @return true if that {@link ClientTransportConfig} is configured with a proxy
 	 */
 	public final boolean hasProxy() {
 		return proxyProvider != null;
@@ -136,7 +136,7 @@ public abstract class TransportClientConfig<CONF extends TransportConfig> extend
 	Supplier<? extends SocketAddress> remoteAddress;
 	AddressResolverGroup<?>           resolver;
 
-	protected TransportClientConfig(ConnectionProvider connectionProvider, Map<ChannelOption<?>, ?> options,
+	protected ClientTransportConfig(ConnectionProvider connectionProvider, Map<ChannelOption<?>, ?> options,
 			Supplier<? extends SocketAddress> remoteAddress) {
 		super(options);
 		this.connectionProvider = Objects.requireNonNull(connectionProvider, "connectionProvider");
@@ -144,7 +144,7 @@ public abstract class TransportClientConfig<CONF extends TransportConfig> extend
 		this.resolver = DefaultAddressResolverGroup.INSTANCE;
 	}
 
-	protected TransportClientConfig(TransportClientConfig<CONF> parent) {
+	protected ClientTransportConfig(ClientTransportConfig<CONF> parent) {
 		super(parent);
 		this.connectionProvider = parent.connectionProvider;
 		this.doOnConnect = parent.doOnConnect;
@@ -160,13 +160,13 @@ public abstract class TransportClientConfig<CONF extends TransportConfig> extend
 		if (channelGroup() == null && doOnConnected() == null && doOnDisconnected() == null) {
 			return ConnectionObserver.emptyListener();
 		}
-		return new TransportClientDoOn(channelGroup(), doOnConnected(), doOnDisconnected());
+		return new ClientTransportDoOn(channelGroup(), doOnConnected(), doOnDisconnected());
 	}
 
 	@Override
 	protected ChannelPipelineConfigurer defaultOnChannelInit() {
 		if (proxyProvider != null) {
-			return new TransportClientChannelInitializer(proxyProvider);
+			return new ClientTransportChannelInitializer(proxyProvider);
 		}
 		else {
 			return ChannelPipelineConfigurer.emptyConfigurer();
@@ -185,11 +185,11 @@ public abstract class TransportClientConfig<CONF extends TransportConfig> extend
 		}
 	}
 
-	static final class TransportClientChannelInitializer implements ChannelPipelineConfigurer {
+	static final class ClientTransportChannelInitializer implements ChannelPipelineConfigurer {
 
 		final ProxyProvider proxyProvider;
 
-		TransportClientChannelInitializer(ProxyProvider proxyProvider) {
+		ClientTransportChannelInitializer(ProxyProvider proxyProvider) {
 			this.proxyProvider = proxyProvider;
 		}
 
@@ -202,13 +202,13 @@ public abstract class TransportClientConfig<CONF extends TransportConfig> extend
 		}
 	}
 
-	static final class TransportClientDoOn implements ConnectionObserver {
+	static final class ClientTransportDoOn implements ConnectionObserver {
 
 		final ChannelGroup channelGroup;
 		final Consumer<? super Connection> doOnConnected;
 		final Consumer<? super Connection> doOnDisconnected;
 
-		TransportClientDoOn(@Nullable ChannelGroup channelGroup,
+		ClientTransportDoOn(@Nullable ChannelGroup channelGroup,
 				@Nullable Consumer<? super Connection> doOnConnected,
 				@Nullable Consumer<? super Connection> doOnDisconnected) {
 			this.channelGroup = channelGroup;

@@ -60,7 +60,7 @@ import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.resources.LoopResources;
 import reactor.netty.tcp.SslProvider;
 import reactor.netty.tcp.TcpServer;
-import reactor.netty.transport.TransportClientConfig;
+import reactor.netty.transport.ClientTransportConfig;
 
 /**
  * Encapsulate all necessary configuration for HTTP client transport. The public API is read-only.
@@ -68,7 +68,7 @@ import reactor.netty.transport.TransportClientConfig;
  * @author Stephane Maldini
  * @author Violeta Georgieva
  */
-public final class HttpClientConfig extends TransportClientConfig<HttpClientConfig> {
+public final class HttpClientConfig extends ClientTransportConfig<HttpClientConfig> {
 
 	/**
 	 * Return the configure base URL to use for this request/response or null.

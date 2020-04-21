@@ -27,7 +27,7 @@ import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 import reactor.netty.NettyInbound;
 import reactor.netty.NettyOutbound;
-import reactor.netty.transport.TransportServer;
+import reactor.netty.transport.ServerTransport;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
@@ -54,7 +54,7 @@ import static reactor.netty.ReactorNetty.format;
  * @author Stephane Maldini
  * @author Violeta Georgieva
  */
-public abstract class TcpServer extends TransportServer<TcpServer, TcpServerConfig> {
+public abstract class TcpServer extends ServerTransport<TcpServer, TcpServerConfig> {
 
 	/**
 	 * Prepare a {@link TcpServer}

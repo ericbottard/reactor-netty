@@ -29,18 +29,18 @@ import reactor.netty.ConnectionObserver;
 /**
  * A generic client {@link Transport} that will {@link #connect()} to a remote address and provide a {@link Connection}
  *
- * @param <T> TransportClient implementation
+ * @param <T> ClientTransport implementation
  * @param <CONF> Client Configuration implementation
  * @author Stephane Maldini
  * @author Violeta Georgieva
  * @since 1.0.0
  */
-public abstract class TransportClient<T extends TransportClient<T, CONF>,
-		CONF extends TransportClientConfig<CONF>>
+public abstract class ClientTransport<T extends ClientTransport<T, CONF>,
+		CONF extends ClientTransportConfig<CONF>>
 		extends Transport<T, CONF> {
 
 	/**
-	 * Connect the {@link TransportClient} and return a {@link Mono} of {@link Connection}. If
+	 * Connect the {@link ClientTransport} and return a {@link Mono} of {@link Connection}. If
 	 * {@link Mono} is cancelled, the underlying connection will be aborted. Once the
 	 * {@link Connection} has been emitted and is not necessary anymore, disposing must be
 	 * done by the user via {@link Connection#dispose()}.
@@ -63,7 +63,7 @@ public abstract class TransportClient<T extends TransportClient<T, CONF>,
 	}
 
 	/**
-	 * Block the {@link TransportClient} and return a {@link Connection}. Disposing must be
+	 * Block the {@link ClientTransport} and return a {@link Connection}. Disposing must be
 	 * done by the user via {@link Connection#dispose()}. The max connection
 	 * timeout is 45 seconds.
 	 *
@@ -74,7 +74,7 @@ public abstract class TransportClient<T extends TransportClient<T, CONF>,
 	}
 
 	/**
-	 * Block the {@link TransportClient} and return a {@link Connection}. Disposing must be
+	 * Block the {@link ClientTransport} and return a {@link Connection}. Disposing must be
 	 * done by the user via {@link Connection#dispose()}.
 	 *
 	 * @param timeout connect timeout
@@ -94,10 +94,10 @@ public abstract class TransportClient<T extends TransportClient<T, CONF>,
 	}
 
 	/**
-	 * Set or add a callback called when {@link TransportClient} is about to connect to the remote endpoint.
+	 * Set or add a callback called when {@link ClientTransport} is about to connect to the remote endpoint.
 	 *
 	 * @param doOnConnect a consumer observing connect events
-	 * @return a new {@link TransportClient} reference
+	 * @return a new {@link ClientTransport} reference
 	 */
 	public final T doOnConnect(Consumer<? super CONF> doOnConnect) {
 		Objects.requireNonNull(doOnConnect, "doOnConnect");
@@ -112,7 +112,7 @@ public abstract class TransportClient<T extends TransportClient<T, CONF>,
 	 * Set or add a callback called after {@link Connection} has been connected.
 	 *
 	 * @param doOnConnected a consumer observing connected events
-	 * @return a new {@link TransportClient} reference
+	 * @return a new {@link ClientTransport} reference
 	 */
 	public final T doOnConnected(Consumer<? super Connection> doOnConnected) {
 		Objects.requireNonNull(doOnConnected, "doOnConnected");
@@ -127,7 +127,7 @@ public abstract class TransportClient<T extends TransportClient<T, CONF>,
 	 * Set or add a callback called after {@link Connection} has been disconnected.
 	 *
 	 * @param doOnDisconnected a consumer observing disconnected events
-	 * @return a new {@link TransportClient} reference
+	 * @return a new {@link ClientTransport} reference
 	 */
 	public final T doOnDisconnected(Consumer<? super Connection> doOnDisconnected) {
 		Objects.requireNonNull(doOnDisconnected, "doOnDisconnected");
@@ -142,7 +142,7 @@ public abstract class TransportClient<T extends TransportClient<T, CONF>,
 	 * The host to which this client should connect.
 	 *
 	 * @param host the host to connect to
-	 * @return a new {@link TransportClient} reference
+	 * @return a new {@link ClientTransport} reference
 	 */
 	public final T host(String host) {
 		Objects.requireNonNull(host, "host");
@@ -152,7 +152,7 @@ public abstract class TransportClient<T extends TransportClient<T, CONF>,
 	/**
 	 * Remove any previously applied Proxy configuration customization
 	 *
-	 * @return a new {@link TransportClient} reference
+	 * @return a new {@link ClientTransport} reference
 	 */
 	public final T noProxy() {
 		if (configuration().hasProxy()) {
@@ -169,7 +169,7 @@ public abstract class TransportClient<T extends TransportClient<T, CONF>,
 	 * The port to which this client should connect.
 	 *
 	 * @param port the port to connect to
-	 * @return a new {@link TransportClient} reference
+	 * @return a new {@link ClientTransport} reference
 	 */
 	public final T port(int port) {
 		return remoteAddress(() -> AddressUtils.updatePort(configuration().remoteAddress(), port));
@@ -179,7 +179,7 @@ public abstract class TransportClient<T extends TransportClient<T, CONF>,
 	 * Apply a proxy configuration
 	 *
 	 * @param proxyOptions the proxy configuration callback
-	 * @return a new {@link TransportClient} reference
+	 * @return a new {@link ClientTransport} reference
 	 */
 	public final T proxy(Consumer<? super ProxyProvider.TypeSpec> proxyOptions) {
 		Objects.requireNonNull(proxyOptions, "proxyOptions");
@@ -194,7 +194,7 @@ public abstract class TransportClient<T extends TransportClient<T, CONF>,
 	 * The address to which this client should connect on each subscribe.
 	 *
 	 * @param remoteAddressSupplier A supplier of the address to connect to.
-	 * @return a new {@link TransportClient}
+	 * @return a new {@link ClientTransport}
 	 */
 	public final T remoteAddress(Supplier<? extends SocketAddress> remoteAddressSupplier) {
 		Objects.requireNonNull(remoteAddressSupplier, "remoteAddressSupplier");
@@ -207,7 +207,7 @@ public abstract class TransportClient<T extends TransportClient<T, CONF>,
 	 * Assign an {@link AddressResolverGroup}.
 	 *
 	 * @param resolver the new {@link AddressResolverGroup}
-	 * @return a new {@link TransportClient} reference
+	 * @return a new {@link ClientTransport} reference
 	 */
 	public final T resolver(AddressResolverGroup<?> resolver) {
 		Objects.requireNonNull(resolver, "resolver");

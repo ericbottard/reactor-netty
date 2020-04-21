@@ -61,18 +61,18 @@ import static reactor.netty.ReactorNetty.format;
 /**
  * A generic server {@link Transport} that will {@link #bind()} to a local address and provide a {@link DisposableServer}
  *
- * @param <T> TransportServer implementation
+ * @param <T> ServerTransport implementation
  * @param <CONF> Server Configuration implementation
  * @author Stephane Maldini
  * @author Violeta Georgieva
  * @since 1.0.0
  */
-public abstract class TransportServer<T extends TransportServer<T, CONF>,
-		CONF extends TransportServerConfig<CONF>>
+public abstract class ServerTransport<T extends ServerTransport<T, CONF>,
+		CONF extends ServerTransportConfig<CONF>>
 		extends Transport<T, CONF> {
 
 	/**
-	 * Binds the {@link TransportServer} and returns a {@link Mono} of {@link DisposableServer}. If
+	 * Binds the {@link ServerTransport} and returns a {@link Mono} of {@link DisposableServer}. If
 	 * {@link Mono} is cancelled, the underlying binding will be aborted. Once the {@link
 	 * DisposableServer} has been emitted and is not necessary anymore, disposing the main server
 	 * loop must be done by the user via {@link DisposableServer#dispose()}.
@@ -180,7 +180,7 @@ public abstract class TransportServer<T extends TransportServer<T, CONF>,
 	 * @param key the attribute key
 	 * @param value the attribute value - null to remove a key
 	 * @param <A> the attribute type
-	 * @return a new {@link TransportServer} reference
+	 * @return a new {@link ServerTransport} reference
 	 * @see ServerBootstrap#childAttr(AttributeKey, Object)
 	 */
 	public final <A> T childAttr(AttributeKey<A> key, @Nullable A value) {
@@ -194,7 +194,7 @@ public abstract class TransportServer<T extends TransportServer<T, CONF>,
 	 * Set or add the given {@link ConnectionObserver} for each remote connection
 	 *
 	 * @param observer the {@link ConnectionObserver} addition
-	 * @return a new {@link TransportServer} reference
+	 * @return a new {@link ServerTransport} reference
 	 */
 	public final T childObserve(ConnectionObserver observer) {
 		Objects.requireNonNull(observer, "observer");
@@ -213,7 +213,7 @@ public abstract class TransportServer<T extends TransportServer<T, CONF>,
 	 * @param key the option key
 	 * @param value the option value - null to remove a key
 	 * @param <A> the option type
-	 * @return a new {@link TransportServer} reference
+	 * @return a new {@link ServerTransport} reference
 	 * @see ServerBootstrap#childOption(ChannelOption, Object)
 	 */
 	@SuppressWarnings("ReferenceEquality")
@@ -232,10 +232,10 @@ public abstract class TransportServer<T extends TransportServer<T, CONF>,
 	}
 
 	/**
-	 * Set or add a callback called when {@link TransportServer} is about to start listening for incoming traffic.
+	 * Set or add a callback called when {@link ServerTransport} is about to start listening for incoming traffic.
 	 *
 	 * @param doOnBind a consumer observing connected events
-	 * @return a new {@link TransportServer} reference
+	 * @return a new {@link ServerTransport} reference
 	 */
 	public final T doOnBind(Consumer<? super CONF> doOnBind) {
 		Objects.requireNonNull(doOnBind, "doOnBind");
@@ -250,7 +250,7 @@ public abstract class TransportServer<T extends TransportServer<T, CONF>,
 	 * Set or add a callback called after {@link DisposableServer} has been started.
 	 *
 	 * @param doOnBound a consumer observing connected events
-	 * @return a new {@link TransportServer} reference
+	 * @return a new {@link ServerTransport} reference
 	 */
 	public final T doOnBound(Consumer<? super DisposableServer> doOnBound) {
 		Objects.requireNonNull(doOnBound, "doOnBound");
@@ -265,7 +265,7 @@ public abstract class TransportServer<T extends TransportServer<T, CONF>,
 	 * Set or add a callback called on new remote {@link Connection}.
 	 *
 	 * @param doOnConnection a consumer observing remote connections
-	 * @return a new {@link TransportServer} reference
+	 * @return a new {@link ServerTransport} reference
 	 */
 	public final T doOnConnection(Consumer<? super Connection> doOnConnection) {
 		Objects.requireNonNull(doOnConnection, "doOnConnected");
@@ -280,7 +280,7 @@ public abstract class TransportServer<T extends TransportServer<T, CONF>,
 	 * Set or add a callback called after {@link DisposableServer} has been shutdown.
 	 *
 	 * @param doOnUnbound a consumer observing unbound events
-	 * @return a new {@link TransportServer} reference
+	 * @return a new {@link ServerTransport} reference
 	 */
 	public final T doOnUnbound(Consumer<? super DisposableServer> doOnUnbound) {
 		Objects.requireNonNull(doOnUnbound, "doOnUnbound");
@@ -295,7 +295,7 @@ public abstract class TransportServer<T extends TransportServer<T, CONF>,
 	 * The host to which this server should bind.
 	 *
 	 * @param host the host to bind to.
-	 * @return a new {@link TransportServer} reference
+	 * @return a new {@link ServerTransport} reference
 	 */
 	public final T host(String host) {
 		Objects.requireNonNull(host, "host");
@@ -306,13 +306,13 @@ public abstract class TransportServer<T extends TransportServer<T, CONF>,
 	 * The port to which this server should bind.
 	 *
 	 * @param port The port to bind to.
-	 * @return a new {@link TransportServer} reference
+	 * @return a new {@link ServerTransport} reference
 	 */
 	public final T port(int port) {
 		return bindAddress(() -> AddressUtils.updatePort(configuration().bindAddress(), port));
 	}
 
-	static final Logger log = Loggers.getLogger(TransportServer.class);
+	static final Logger log = Loggers.getLogger(ServerTransport.class);
 
 	static class Acceptor extends ChannelInboundHandlerAdapter {
 

@@ -56,7 +56,7 @@ import reactor.netty.http.HttpResources;
 import reactor.netty.resources.LoopResources;
 import reactor.netty.tcp.SslProvider;
 import reactor.netty.tcp.TcpServer;
-import reactor.netty.transport.TransportServerConfig;
+import reactor.netty.transport.ServerTransportConfig;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
@@ -76,7 +76,7 @@ import static reactor.netty.ReactorNetty.format;
  * @author Stephane Maldini
  * @author Violeta Georgieva
  */
-public final class HttpServerConfig extends TransportServerConfig<HttpServerConfig> {
+public final class HttpServerConfig extends ServerTransportConfig<HttpServerConfig> {
 
 	/**
 	 * Return the configured compression predicate or null.

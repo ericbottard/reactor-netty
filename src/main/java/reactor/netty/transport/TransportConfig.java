@@ -369,5 +369,5 @@ public abstract class TransportConfig {
 		}
 	}
 
-	static final Logger log = Loggers.getLogger(TransportClientConfig.class);
+	static final Logger log = Loggers.getLogger(TransportConfig.class);
 }

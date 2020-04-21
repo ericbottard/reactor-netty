@@ -70,7 +70,7 @@ import reactor.netty.resources.PooledConnectionProvider.PooledConnection;
 import reactor.netty.tcp.TcpClient;
 import reactor.netty.tcp.TcpClientTests;
 import reactor.netty.tcp.TcpServer;
-import reactor.netty.transport.TransportClientConfig;
+import reactor.netty.transport.ClientTransportConfig;
 import reactor.pool.InstrumentedPool;
 import reactor.pool.PoolAcquirePendingLimitException;
 import reactor.pool.PooledRef;
@@ -155,8 +155,8 @@ public class PooledConnectionProviderTest {
 			Supplier<? extends SocketAddress> remoteAddress = () -> address;
 			ConnectionObserver observer = ConnectionObserver.emptyListener();
 			EventLoopGroup group = new NioEventLoopGroup(2);
-			TransportClientConfig<?> config =
-					new TransportClientConfigImpl(group, pool, Collections.emptyMap(), remoteAddress);
+			ClientTransportConfig<?> config =
+					new ClientTransportConfigImpl(group, pool, Collections.emptyMap(), remoteAddress);
 
 			//fail a couple
 			StepVerifier.create(pool.acquire(config, observer, remoteAddress, config.resolver()))
@@ -652,11 +652,11 @@ public class PooledConnectionProviderTest {
 		}
 	}
 
-	static final class TransportClientConfigImpl extends TransportClientConfig<TransportClientConfigImpl> {
+	static final class ClientTransportConfigImpl extends ClientTransportConfig<ClientTransportConfigImpl> {
 
 		final EventLoopGroup group;
 
-		protected TransportClientConfigImpl(EventLoopGroup group, ConnectionProvider connectionProvider,
+		protected ClientTransportConfigImpl(EventLoopGroup group, ConnectionProvider connectionProvider,
 				Map<ChannelOption<?>, ?> options, Supplier<? extends SocketAddress> remoteAddress) {
 			super(connectionProvider, options, remoteAddress);
 			this.group = group;

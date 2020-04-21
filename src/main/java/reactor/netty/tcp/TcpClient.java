@@ -27,7 +27,7 @@ import reactor.netty.Connection;
 import reactor.netty.NettyInbound;
 import reactor.netty.NettyOutbound;
 import reactor.netty.resources.ConnectionProvider;
-import reactor.netty.transport.TransportClient;
+import reactor.netty.transport.ClientTransport;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
@@ -54,7 +54,7 @@ import static reactor.netty.ReactorNetty.format;
  * @author Stephane Maldini
  * @author Violeta Georgieva
  */
-public abstract class TcpClient extends TransportClient<TcpClient, TcpClientConfig> {
+public abstract class TcpClient extends ClientTransport<TcpClient, TcpClientConfig> {
 
 	/**
 	 * Prepare a pooled {@link TcpClient}

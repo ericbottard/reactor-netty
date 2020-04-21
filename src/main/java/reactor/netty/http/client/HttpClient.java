@@ -50,7 +50,7 @@ import reactor.netty.http.websocket.WebsocketInbound;
 import reactor.netty.http.websocket.WebsocketOutbound;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.SslProvider;
-import reactor.netty.transport.TransportClient;
+import reactor.netty.transport.ClientTransport;
 import reactor.util.Metrics;
 
 /**
@@ -89,7 +89,7 @@ import reactor.util.Metrics;
  * @author Stephane Maldini
  * @author Violeta Georgieva
  */
-public abstract class HttpClient extends TransportClient<HttpClient, HttpClientConfig> {
+public abstract class HttpClient extends ClientTransport<HttpClient, HttpClientConfig> {
 
 	public static final String USER_AGENT = String.format("ReactorNetty/%s", reactorNettyVersion());
 

@@ -32,7 +32,7 @@ import reactor.netty.Connection;
 import reactor.netty.ConnectionObserver;
 import reactor.netty.http.HttpProtocol;
 import reactor.netty.tcp.SslProvider;
-import reactor.netty.transport.TransportServer;
+import reactor.netty.transport.ServerTransport;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 import reactor.util.Metrics;
@@ -57,7 +57,7 @@ import static reactor.netty.ReactorNetty.format;
  * @author Stephane Maldini
  * @author Violeta Georgieva
  */
-public abstract class HttpServer extends TransportServer<HttpServer, HttpServerConfig> {
+public abstract class HttpServer extends ServerTransport<HttpServer, HttpServerConfig> {
 
 	/**
 	 * Prepare an {@link HttpServer}
