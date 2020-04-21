@@ -64,6 +64,7 @@ import javax.annotation.Nullable;
 import java.net.SocketAddress;
 import java.util.Map;
 import java.util.function.BiPredicate;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static reactor.netty.ReactorNetty.ACCESS_LOG_ENABLED;
@@ -130,7 +131,7 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 	 *
 	 * @return true if that {@link HttpServer} secured via SSL transport
 	 */
-	public final boolean isSecure(){
+	public boolean isSecure(){
 		return sslProvider != null;
 	}
 
@@ -174,6 +175,18 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 		return sslProvider;
 	}
 
+	/**
+	 * Returns the configured function that receives the actual uri and returns the uri tag value
+	 * that will be used for the metrics with {@link reactor.netty.Metrics#URI} tag
+	 *
+	 * @return the configured function that receives the actual uri and returns the uri tag value
+	 * that will be used for the metrics with {@link reactor.netty.Metrics#URI} tag
+	 */
+	@Nullable
+	public Function<String, String> uriTagValue() {
+		return uriTagValue;
+	}
+
 
 	// Protected/Package private write API
 
@@ -186,6 +199,7 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 	int                                                protocols;
 	ProxyProtocolSupportType                           proxyProtocolSupportType;
 	SslProvider                                        sslProvider;
+	Function<String, String>                           uriTagValue;
 
 	HttpServerConfig(Map<ChannelOption<?>, ?> options, Map<ChannelOption<?>, ?> childOptions, Supplier<? extends SocketAddress> localAddress) {
 		super(options, childOptions, localAddress);
@@ -209,6 +223,7 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 		this.protocols = parent.protocols;
 		this.proxyProtocolSupportType = parent.proxyProtocolSupportType;
 		this.sslProvider = parent.sslProvider;
+		this.uriTagValue = parent.uriTagValue;
 	}
 
 	@Override
@@ -246,7 +261,12 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 		return super.defaultOnChannelInit()
 		            .then(new HttpServerChannelInitializer(compressPredicate, cookieDecoder, cookieEncoder,
 		                decoder, forwarded, metricsRecorder(), minCompressionSize, channelOperationsProvider(),
-		                protocols, proxyProtocolSupportType, sslProvider));
+		                protocols, proxyProtocolSupportType, sslProvider, uriTagValue));
+	}
+
+	@Override
+	protected void metricsRecorder(@Nullable Supplier<? extends ChannelMetricsRecorder> metricsRecorder) {
+		super.metricsRecorder(metricsRecorder);
 	}
 
 	static void addStreamHandlers(Channel ch, ChannelOperations.OnSetup opsFactory,
@@ -331,7 +351,8 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 			ConnectionObserver listener,
 			@Nullable Supplier<? extends ChannelMetricsRecorder> metricsRecorder,
 			int minCompressionSize,
-			ChannelOperations.OnSetup opsFactory) {
+			ChannelOperations.OnSetup opsFactory,
+			@Nullable Function<String, String> uriTagValue) {
 		HttpServerCodec httpServerCodec =
 				new HttpServerCodec(decoder.maxInitialLineLength(), decoder.maxHeaderSize(),
 						decoder.maxChunkSize(), decoder.validateHeaders(), decoder.initialBufferSize());
@@ -365,7 +386,7 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 			ChannelMetricsRecorder channelMetricsRecorder = metricsRecorder.get();
 			if (channelMetricsRecorder instanceof HttpServerMetricsRecorder) {
 				p.addAfter(NettyPipeline.HttpTrafficHandler, NettyPipeline.HttpMetricsHandler,
-						new HttpServerMetricsHandler((HttpServerMetricsRecorder) channelMetricsRecorder));
+						new HttpServerMetricsHandler((HttpServerMetricsRecorder) channelMetricsRecorder, uriTagValue));
 			}
 		}
 	}
@@ -378,7 +399,8 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 			boolean forwarded,
 			ConnectionObserver listener,
 			@Nullable Supplier<? extends ChannelMetricsRecorder> metricsRecorder,
-			int minCompressionSize) {
+			int minCompressionSize,
+			@Nullable Function<String, String> uriTagValue) {
 		p.addBefore(NettyPipeline.ReactiveBridge,
 		            NettyPipeline.HttpCodec,
 		            new HttpServerCodec(decoder.maxInitialLineLength(), decoder.maxHeaderSize(),
@@ -401,7 +423,7 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 			ChannelMetricsRecorder channelMetricsRecorder = metricsRecorder.get();
 			if (channelMetricsRecorder instanceof HttpServerMetricsRecorder) {
 				p.addAfter(NettyPipeline.HttpTrafficHandler, NettyPipeline.HttpMetricsHandler,
-				           new HttpServerMetricsHandler((HttpServerMetricsRecorder) channelMetricsRecorder));
+				           new HttpServerMetricsHandler((HttpServerMetricsRecorder) channelMetricsRecorder, uriTagValue));
 			}
 		}
 	}
@@ -561,6 +583,7 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 		final Supplier<? extends ChannelMetricsRecorder>         metricsRecorder;
 		final int                                                minCompressionSize;
 		final ChannelOperations.OnSetup                          opsFactory;
+		final Function<String, String>                           uriTagValue;
 
 		Http11OrH2Codec(
 				@Nullable BiPredicate<HttpServerRequest, HttpServerResponse> compressPredicate,
@@ -571,7 +594,8 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 				ConnectionObserver listener,
 				@Nullable Supplier<? extends ChannelMetricsRecorder> metricsRecorder,
 				int minCompressionSize,
-				ChannelOperations.OnSetup opsFactory) {
+				ChannelOperations.OnSetup opsFactory,
+				@Nullable Function<String, String> uriTagValue) {
 			super(ApplicationProtocolNames.HTTP_1_1);
 			this.compressPredicate = compressPredicate;
 			this.cookieDecoder = cookieDecoder;
@@ -582,6 +606,7 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 			this.metricsRecorder = metricsRecorder;
 			this.minCompressionSize = minCompressionSize;
 			this.opsFactory = opsFactory;
+			this.uriTagValue = uriTagValue;
 		}
 
 		@Override
@@ -595,7 +620,7 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 
 			if (ApplicationProtocolNames.HTTP_1_1.equals(protocol)) {
 				configureHttp11Pipeline(p, compressPredicate, cookieDecoder, cookieEncoder, decoder, forwarded,
-						listener, metricsRecorder, minCompressionSize);
+						listener, metricsRecorder, minCompressionSize, uriTagValue);
 				return;
 			}
 
@@ -616,6 +641,7 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 		final int                                                protocols;
 		final ProxyProtocolSupportType                           proxyProtocolSupportType;
 		final SslProvider                                        sslProvider;
+		final Function<String, String>                           uriTagValue;
 
 		HttpServerChannelInitializer(
 				@Nullable BiPredicate<HttpServerRequest, HttpServerResponse> compressPredicate,
@@ -628,7 +654,8 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 				ChannelOperations.OnSetup opsFactory,
 				int protocols,
 				ProxyProtocolSupportType proxyProtocolSupportType,
-				@Nullable SslProvider sslProvider) {
+				@Nullable SslProvider sslProvider,
+				@Nullable Function<String, String> uriTagValue) {
 			this.compressPredicate = compressPredicate;
 			this.cookieDecoder = cookieDecoder;
 			this.cookieEncoder = cookieEncoder;
@@ -640,6 +667,7 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 			this.protocols = protocols;
 			this.proxyProtocolSupportType = proxyProtocolSupportType;
 			this.sslProvider = sslProvider;
+			this.uriTagValue = uriTagValue;
 		}
 
 		@Override
@@ -658,7 +686,8 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 					               observer,
 					               metricsRecorder,
 					               minCompressionSize,
-					               opsFactory));
+					               opsFactory,
+					               uriTagValue));
 				}
 				if ((protocols & h11) == h11) {
 					configureHttp11Pipeline(
@@ -670,7 +699,8 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 							forwarded,
 							observer,
 							metricsRecorder,
-							minCompressionSize);
+							minCompressionSize,
+							uriTagValue);
 				}
 				if ((protocols & h2) == h2) {
 					configureH2Pipeline(
@@ -695,7 +725,8 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 							observer,
 							metricsRecorder,
 							minCompressionSize,
-							opsFactory);
+							opsFactory,
+							uriTagValue);
 				}
 				if ((protocols & h11) == h11) {
 					configureHttp11Pipeline(
@@ -707,7 +738,8 @@ public final class HttpServerConfig extends TransportServerConfig<HttpServerConf
 							forwarded,
 							observer,
 							metricsRecorder,
-							minCompressionSize);
+							minCompressionSize,
+							uriTagValue);
 				}
 				if ((protocols & h2c) == h2c) {
 					configureH2Pipeline(

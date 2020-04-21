@@ -35,6 +35,7 @@ import reactor.netty.tcp.SslProvider;
 import reactor.netty.transport.TransportServer;
 import reactor.util.Logger;
 import reactor.util.Loggers;
+import reactor.util.Metrics;
 
 import static reactor.netty.ReactorNetty.format;
 
@@ -212,6 +213,53 @@ public abstract class HttpServer extends TransportServer<HttpServer, HttpServerC
 		HttpServer dup = duplicate();
 		dup.configuration().decoder = decoder;
 		return dup;
+	}
+
+	/**
+	 * Whether to enable metrics to be collected and registered in Micrometer's
+	 * {@link io.micrometer.core.instrument.Metrics#globalRegistry globalRegistry}
+	 * under the name {@link reactor.netty.Metrics#HTTP_SERVER_PREFIX}.
+	 * <p>{@code uriTagValue} function receives the actual uri and returns the uri tag value
+	 * that will be used for the metrics with {@link reactor.netty.Metrics#URI} tag.
+	 * For example instead of using the actual uri {@code "/users/1"} as uri tag value, templated uri
+	 * {@code "/users/{id}"} can be used.
+	 * <p><strong>Note:</strong>
+	 * It is strongly recommended applications to configure an upper limit for the number of the URI tags.
+	 * For example:
+	 * <pre class="code">
+	 * Metrics.globalRegistry
+	 *        .config()
+	 *        .meterFilter(MeterFilter.maximumAllowableTags(HTTP_SERVER_PREFIX, URI, 100, MeterFilter.deny()));
+	 * </pre>
+	 * <p>By default metrics are not enabled.
+	 *
+	 * @param enable true enables metrics collection; false disables it
+	 * @param uriTagValue a function that receives the actual uri and returns the uri tag value
+	 * that will be used for the metrics with {@link reactor.netty.Metrics#URI} tag
+	 * @return a new {@link HttpServer}
+	 * @since 0.9.7
+	 */
+	public final HttpServer metrics(boolean enable, Function<String, String> uriTagValue) {
+		if (enable) {
+			if (!Metrics.isInstrumentationAvailable()) {
+				throw new UnsupportedOperationException(
+						"To enable metrics, you must add the dependency `io.micrometer:micrometer-core`" +
+								" to the class path first");
+			}
+			HttpServer dup = duplicate();
+			dup.configuration().metricsRecorder(() -> configuration().defaultMetricsRecorder());
+			dup.configuration().uriTagValue = uriTagValue;
+			return dup;
+		}
+		else if (configuration().metricsRecorder() != null) {
+			HttpServer dup = duplicate();
+			dup.configuration().metricsRecorder(null);
+			dup.configuration().uriTagValue = null;
+			return dup;
+		}
+		else {
+			return this;
+		}
 	}
 
 	/**

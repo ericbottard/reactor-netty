@@ -78,6 +78,11 @@ public abstract class TcpServer extends TransportServer<TcpServer, TcpServerConf
 		return doOnConnection(new OnConnectionHandle(handler));
 	}
 
+	@Override
+	public final TcpServer metrics(boolean enable) {
+		return super.metrics(enable);
+	}
+
 	/**
 	 * Removes any previously applied SSL configuration customization
 	 *

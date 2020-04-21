@@ -132,7 +132,7 @@ public abstract class Transport<T extends Transport<T, C>, C extends TransportCo
 	 * @param enable true enables metrics collection; false disables it
 	 * @return a new {@link Transport} reference
 	 */
-	public final T metrics(boolean enable) {
+	protected T metrics(boolean enable) {
 		if (enable) {
 			if (!Metrics.isInstrumentationAvailable()) {
 				throw new UnsupportedOperationException(

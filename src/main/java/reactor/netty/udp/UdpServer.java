@@ -176,6 +176,11 @@ public abstract class UdpServer extends Transport<UdpServer, UdpServerConfig> {
 		return bindAddress(() -> AddressUtils.updateHost(configuration().bindAddress(), host));
 	}
 
+	@Override
+	public final UdpServer metrics(boolean enable) {
+		return super.metrics(enable);
+	}
+
 	/**
 	 * The port to which this server should bind.
 	 *

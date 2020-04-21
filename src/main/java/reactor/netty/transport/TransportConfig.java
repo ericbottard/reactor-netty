@@ -79,7 +79,7 @@ public abstract class TransportConfig {
 	}
 
 	public int channelHash() {
-		return Objects.hash(attrs, bindAddress != null ? bindAddress.get() : 0, channelGroup,
+		return Objects.hash(attrs, bindAddress != null ? bindAddress.get() : 0, channelGroup, doOnChannelInit,
 				loggingHandler, loopResources, metricsRecorder, observer, options, preferNative);
 	}
 
@@ -284,6 +284,10 @@ public abstract class TransportConfig {
 	 * @return the configured {@link EventLoopGroup}
 	 */
 	protected abstract EventLoopGroup eventLoopGroup();
+
+	protected void metricsRecorder(@Nullable Supplier<? extends ChannelMetricsRecorder> metricsRecorder) {
+		this.metricsRecorder = metricsRecorder;
+	}
 
 	/**
 	 * Add or remove values to a map in an immutable way by returning a new map instance.

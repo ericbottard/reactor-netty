@@ -99,6 +99,11 @@ public abstract class TcpClient extends TransportClient<TcpClient, TcpClientConf
 		return doOnConnected(new OnConnectedHandle(handler));
 	}
 
+	@Override
+	public final TcpClient metrics(boolean enable) {
+		return super.metrics(enable);
+	}
+
 	/**
 	 * Remove any previously applied SSL configuration customization
 	 *

@@ -158,7 +158,7 @@ public final class HttpClientConfig extends TransportClientConfig<HttpClientConf
 	 *
 	 * @return true if that {@link HttpServer} secured via SSL transport
 	 */
-	public final boolean isSecure(){
+	public boolean isSecure(){
 		return sslProvider != null;
 	}
 
@@ -221,6 +221,18 @@ public final class HttpClientConfig extends TransportClientConfig<HttpClientConf
 	}
 
 	/**
+	 * Returns the configured function that receives the actual uri and returns the uri tag value
+	 * that will be used for the metrics with {@link reactor.netty.Metrics#URI} tag
+	 *
+	 * @return the configured function that receives the actual uri and returns the uri tag value
+	 * that will be used for the metrics with {@link reactor.netty.Metrics#URI} tag
+	 */
+	@Nullable
+	public Function<String, String> uriTagValue() {
+		return uriTagValue;
+	}
+
+	/**
 	 * Return the configured maximum allowable frame payload length.
 	 *
 	 * @return the configured maximum allowable frame payload length
@@ -264,6 +276,7 @@ public final class HttpClientConfig extends TransportClientConfig<HttpClientConf
 	boolean retryDisabled;
 	SslProvider sslProvider;
 	String uri;
+	Function<String, String> uriTagValue;
 	int websocketMaxFramePayloadLength;
 	boolean websocketProxyPing;
 	String websocketSubprotocols;
@@ -308,6 +321,7 @@ public final class HttpClientConfig extends TransportClientConfig<HttpClientConf
 		this.retryDisabled = parent.retryDisabled;
 		this.sslProvider = parent.sslProvider;
 		this.uri = parent.uri;
+		this.uriTagValue = parent.uriTagValue;
 		this.websocketMaxFramePayloadLength = parent.websocketMaxFramePayloadLength;
 		this.websocketProxyPing = parent.websocketProxyPing;
 		this.websocketSubprotocols = parent.websocketSubprotocols;
@@ -350,7 +364,7 @@ public final class HttpClientConfig extends TransportClientConfig<HttpClientConf
 	@SuppressWarnings("unchecked")
 	protected ChannelPipelineConfigurer defaultOnChannelInit() {
 		return super.defaultOnChannelInit()
-		            .then(new HttpClientChannelInitializer(acceptGzip, decoder, metricsRecorder(), protocols, sslProvider));
+		            .then(new HttpClientChannelInitializer(acceptGzip, decoder, metricsRecorder(), protocols, sslProvider, uriTagValue));
 	}
 
 	@Override
@@ -361,6 +375,11 @@ public final class HttpClientConfig extends TransportClientConfig<HttpClientConf
 	@Override
 	protected AddressResolverGroup<?> resolverInternal() {
 		return super.resolverInternal();
+	}
+
+	@Override
+	protected void metricsRecorder(@Nullable Supplier<? extends ChannelMetricsRecorder> metricsRecorder) {
+		super.metricsRecorder(metricsRecorder);
 	}
 
 	void deferredConf(Function<HttpClientConfig, Mono<HttpClientConfig>> deferrer) {
@@ -375,7 +394,8 @@ public final class HttpClientConfig extends TransportClientConfig<HttpClientConf
 	static void configureHttp11Pipeline(ChannelPipeline p,
 			boolean acceptGzip,
 			HttpResponseDecoderSpec decoder,
-			@Nullable Supplier<? extends ChannelMetricsRecorder> metricsRecorder) {
+			@Nullable Supplier<? extends ChannelMetricsRecorder> metricsRecorder,
+			@Nullable Function<String, String> uriTagValue) {
 		p.addBefore(NettyPipeline.ReactiveBridge,
 				NettyPipeline.HttpCodec,
 				new HttpClientCodec(
@@ -398,7 +418,7 @@ public final class HttpClientConfig extends TransportClientConfig<HttpClientConf
 			if (channelMetricsRecorder instanceof HttpClientMetricsRecorder) {
 				p.addBefore(NettyPipeline.ReactiveBridge,
 						NettyPipeline.HttpMetricsHandler,
-						new HttpClientMetricsHandler((HttpClientMetricsRecorder) channelMetricsRecorder));
+						new HttpClientMetricsHandler((HttpClientMetricsRecorder) channelMetricsRecorder, uriTagValue));
 			}
 		}
 	}
@@ -451,18 +471,21 @@ public final class HttpClientConfig extends TransportClientConfig<HttpClientConf
 		final Supplier<? extends ChannelMetricsRecorder> metricsRecorder;
 		final int                                        protocols;
 		final SslProvider                                sslProvider;
+		final Function<String, String>                   uriTagValue;
 
 		HttpClientChannelInitializer(
 				boolean acceptGzip,
 				HttpResponseDecoderSpec decoder,
 				@Nullable Supplier<? extends ChannelMetricsRecorder> metricsRecorder,
 				int protocols,
-				@Nullable SslProvider sslProvider) {
+				@Nullable SslProvider sslProvider,
+				@Nullable Function<String, String> uriTagValue) {
 			this.acceptGzip = acceptGzip;
 			this.decoder = decoder;
 			this.metricsRecorder = metricsRecorder;
 			this.protocols = protocols;
 			this.sslProvider = sslProvider;
+			this.uriTagValue = uriTagValue;
 		}
 
 		@Override
@@ -472,7 +495,7 @@ public final class HttpClientConfig extends TransportClientConfig<HttpClientConf
 			}
 
 			if ((protocols & h11) == h11) {
-				configureHttp11Pipeline(channel.pipeline(), acceptGzip, decoder, metricsRecorder);
+				configureHttp11Pipeline(channel.pipeline(), acceptGzip, decoder, metricsRecorder, uriTagValue);
 			}
 		}
 	}

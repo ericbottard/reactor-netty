@@ -2090,7 +2090,7 @@ public class HttpClientTest {
 		HttpClient client =
 				createHttpClientForContextWithAddress(provider)
 				        .wiretap("testIssue988", LogLevel.INFO)
-				        .metrics(true);
+				        .metrics(true, s -> s);
 
 		AtomicReference<Channel> ch1 = new AtomicReference<>();
 		StepVerifier.create(client.doOnConnected(c -> ch1.set(c.channel()))

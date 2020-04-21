@@ -75,6 +75,11 @@ public abstract class UdpClient extends TransportClient<UdpClient, UdpClientConf
 		return doOnConnected(new OnConnectedHandle(handler));
 	}
 
+	@Override
+	public final UdpClient metrics(boolean enable) {
+		return super.metrics(enable);
+	}
+
 	/**
 	 * Run IO loops on a supplied {@link EventLoopGroup} from the {@link LoopResources} container.
 	 *
