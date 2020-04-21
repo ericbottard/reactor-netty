@@ -47,7 +47,7 @@ public abstract class ClientTransport<T extends ClientTransport<T, CONF>,
 	 *
 	 * @return a {@link Mono} of {@link Connection}
 	 */
-	public Mono<? extends Connection> connect() {
+	protected Mono<? extends Connection> connect() {
 		CONF config = configuration();
 
 		ConnectionObserver observer = config.defaultConnectionObserver().then(config.observer);
@@ -69,7 +69,7 @@ public abstract class ClientTransport<T extends ClientTransport<T, CONF>,
 	 *
 	 * @return a {@link Connection}
 	 */
-	public final Connection connectNow() {
+	protected Connection connectNow() {
 		return connectNow(Duration.ofSeconds(45));
 	}
 
@@ -80,7 +80,7 @@ public abstract class ClientTransport<T extends ClientTransport<T, CONF>,
 	 * @param timeout connect timeout
 	 * @return a {@link Connection}
 	 */
-	public final Connection connectNow(Duration timeout) {
+	protected Connection connectNow(Duration timeout) {
 		Objects.requireNonNull(timeout, "timeout");
 		try {
 			return Objects.requireNonNull(connect().block(timeout), "aborted");

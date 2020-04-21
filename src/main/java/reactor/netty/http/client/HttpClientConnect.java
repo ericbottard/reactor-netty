@@ -86,7 +86,7 @@ class HttpClientConnect extends HttpClient {
 	}
 
 	@Override
-	public Mono<? extends Connection> connect() {
+	protected Mono<? extends Connection> connect() {
 		HttpClientConfig config = configuration();
 
 		Mono<? extends Connection> mono;

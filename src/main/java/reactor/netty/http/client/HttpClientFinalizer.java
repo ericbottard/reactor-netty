@@ -86,7 +86,15 @@ final class HttpClientFinalizer extends HttpClientConnect implements HttpClient.
 
 	@Override
 	public ByteBufFlux responseContent() {
-		return content(this);
+		ByteBufAllocator alloc = (ByteBufAllocator) configuration().options()
+		                                                           .get(ChannelOption.ALLOCATOR);
+		if (alloc == null) {
+			alloc = ByteBufAllocator.DEFAULT;
+		}
+
+		@SuppressWarnings("unchecked")
+		Mono<ChannelOperations<?, ?>> connector = (Mono<ChannelOperations<?, ?>>) connect();
+		return ByteBufFlux.fromInbound(connector.flatMapMany(contentReceiver), alloc);
 	}
 
 	@Override
@@ -129,20 +137,6 @@ final class HttpClientFinalizer extends HttpClientConnect implements HttpClient.
 	@SuppressWarnings("unchecked")
 	Mono<HttpClientOperations> _connect() {
 		return (Mono<HttpClientOperations>) connect();
-	}
-
-	static ByteBufFlux content(HttpClient httpClient) {
-		ByteBufAllocator alloc = (ByteBufAllocator) httpClient.configuration()
-		                                                      .options()
-		                                                      .get(ChannelOption.ALLOCATOR);
-		if (alloc == null) {
-			alloc = ByteBufAllocator.DEFAULT;
-		}
-
-		@SuppressWarnings("unchecked")
-		Mono<ChannelOperations<?, ?>> connector = (Mono<ChannelOperations<?, ?>>) httpClient.connect();
-
-		return ByteBufFlux.fromInbound(connector.flatMapMany(contentReceiver), alloc);
 	}
 
 	static void discard(HttpClientOperations c) {

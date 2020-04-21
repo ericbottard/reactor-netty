@@ -20,12 +20,18 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.ChannelOption;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufFlux;
+import reactor.netty.Connection;
+import reactor.netty.channel.ChannelOperations;
 import reactor.netty.http.websocket.WebsocketInbound;
 import reactor.netty.http.websocket.WebsocketOutbound;
+
+import static reactor.netty.http.client.HttpClientFinalizer.contentReceiver;
 
 /**
  * @author Stephane Maldini
@@ -70,20 +76,30 @@ final class WebsocketFinalizer extends HttpClientConnect implements HttpClient.W
 
 	// WebsocketReceiver methods
 
-	@SuppressWarnings("unchecked")
-	Mono<WebsocketClientOperations> _connect() {
-		return (Mono<WebsocketClientOperations>) connect();
+	@Override
+	public Mono<? extends Connection> connect() {
+		return super.connect();
 	}
 
 	@Override
 	public <V> Flux<V> handle(BiFunction<? super WebsocketInbound, ? super WebsocketOutbound, ? extends Publisher<V>> receiver) {
-		return _connect().flatMapMany(c -> Flux.from(receiver.apply(c, c))
-		                                       .doFinally(s -> HttpClientFinalizer.discard(c)));
+		@SuppressWarnings("unchecked")
+		Mono<WebsocketClientOperations> connector = (Mono<WebsocketClientOperations>) connect();
+		return connector.flatMapMany(c -> Flux.from(receiver.apply(c, c))
+		                                      .doFinally(s -> HttpClientFinalizer.discard(c)));
 	}
 
 	@Override
 	public ByteBufFlux receive() {
-		return HttpClientFinalizer.content(this);
+		ByteBufAllocator alloc = (ByteBufAllocator) configuration().options()
+		                                                           .get(ChannelOption.ALLOCATOR);
+		if (alloc == null) {
+			alloc = ByteBufAllocator.DEFAULT;
+		}
+
+		@SuppressWarnings("unchecked")
+		Mono<ChannelOperations<?, ?>> connector = (Mono<ChannelOperations<?, ?>>) connect();
+		return ByteBufFlux.fromInbound(connector.flatMapMany(contentReceiver), alloc);
 	}
 
 	@Override

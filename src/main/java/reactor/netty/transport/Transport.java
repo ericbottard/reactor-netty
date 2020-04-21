@@ -316,6 +316,7 @@ public abstract class Transport<T extends Transport<T, C>, C extends TransportCo
 
 	/**
 	 * Return a new {@link Transport} inheriting the current configuration.
+	 * This is a shallow copy.
 	 *
 	 * @return a new {@link Transport} inheriting the current configuration
 	 */

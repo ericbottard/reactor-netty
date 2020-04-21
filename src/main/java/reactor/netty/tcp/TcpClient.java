@@ -16,6 +16,7 @@
 
 package reactor.netty.tcp;
 
+import java.time.Duration;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -84,6 +85,21 @@ public abstract class TcpClient extends ClientTransport<TcpClient, TcpClientConf
 	 */
 	public static TcpClient newConnection() {
 		return TcpClientConnect.INSTANCE;
+	}
+
+	@Override
+	public final Mono<? extends Connection> connect() {
+		return super.connect();
+	}
+
+	@Override
+	public final Connection connectNow() {
+		return super.connectNow();
+	}
+
+	@Override
+	public final Connection connectNow(Duration timeout) {
+		return super.connectNow(timeout);
 	}
 
 	/**

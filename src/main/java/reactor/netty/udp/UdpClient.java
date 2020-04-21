@@ -15,6 +15,7 @@
  */
 package reactor.netty.udp;
 
+import java.time.Duration;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -60,6 +61,21 @@ public abstract class UdpClient extends ClientTransport<UdpClient, UdpClientConf
 	 */
 	public static UdpClient create() {
 		return UdpClientConnect.INSTANCE;
+	}
+
+	@Override
+	public final Mono<? extends Connection> connect() {
+		return super.connect();
+	}
+
+	@Override
+	public final Connection connectNow() {
+		return super.connectNow();
+	}
+
+	@Override
+	public final Connection connectNow(Duration timeout) {
+		return super.connectNow(timeout);
 	}
 
 	/**
